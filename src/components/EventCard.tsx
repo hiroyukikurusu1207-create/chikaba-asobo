@@ -12,9 +12,11 @@ function formatDateRange(start: string, end: string | null): string {
 export function EventCard({
   event,
   minutes,
+  modeEmoji,
 }: {
   event: EventRow;
   minutes: number | null;
+  modeEmoji: string;
 }) {
   return (
     <li className="rounded-xl border border-black/10 dark:border-white/15 p-4 flex flex-col gap-1.5">
@@ -31,7 +33,7 @@ export function EventCard({
         </div>
         {minutes !== null && (
           <span className="text-sm font-medium text-blue-700 dark:text-blue-300 whitespace-nowrap">
-            🚲 約{minutes}分
+            {modeEmoji} 約{minutes}分
           </span>
         )}
       </div>

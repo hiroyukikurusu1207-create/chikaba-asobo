@@ -1,12 +1,31 @@
 import { geocodeAddress } from "@/lib/geocodeClient";
 
-const BASE = "https://www.city.edogawa.tokyo.jp";
+// event_cal_multi/calendar.cgi という同一システムを使う自治体サイト。
+// ジャンルのカテゴリID・ラベルは自治体ごとに全く異なる体系なので、
+// ソースごとに個別に調査して設定する（共通化できるのはURL構造のみ）。
+type GenreCategory = { id: number; label: string };
 
-// 江戸川区イベントカレンダーの絞り込みジャンルID（フォーム送信結果から確認済み）
-const TARGET_GENRES: Record<string, number> = {
-  "お祭り": 2,
-  "文化・芸術": 4,
+type MunicipalitySource = {
+  id: string;
+  baseUrl: string;
+  genres: GenreCategory[];
 };
+
+const SOURCES: MunicipalitySource[] = [
+  {
+    id: "edogawa_official",
+    baseUrl: "https://www.city.edogawa.tokyo.jp",
+    genres: [
+      { id: 2, label: "お祭り" },
+      { id: 4, label: "文化・芸術" },
+    ],
+  },
+  {
+    id: "koto_official",
+    baseUrl: "https://www.city.koto.lg.jp",
+    genres: [{ id: 5, label: "文化・観光" }],
+  },
+];
 
 export type ScrapedEvent = {
   title: string;
@@ -17,6 +36,7 @@ export type ScrapedEvent = {
   address: string | null;
   lat: number | null;
   lng: number | null;
+  source: string;
   sourceUrl: string;
 };
 
@@ -33,13 +53,28 @@ function stripTags(html: string): string {
     .trim();
 }
 
-function extractAfterHeading(html: string, label: string): string | null {
-  const idx = html.indexOf(`<h2>${label}</h2>`);
-  if (idx === -1) return null;
-  const rest = html.slice(idx + `<h2>${label}</h2>`.length);
-  const match = rest.match(/^\s*(?:<ul>([\s\S]*?)<\/ul>|<p[^>]*>([\s\S]*?)<\/p>)/);
-  if (!match) return null;
-  return stripTags(match[1] ?? match[2] ?? "");
+function extractAfterHeading(html: string, labels: string[]): string | null {
+  for (const label of labels) {
+    const idx = html.indexOf(`<h2>${label}</h2>`);
+    if (idx === -1) continue;
+    const rest = html.slice(idx + `<h2>${label}</h2>`.length);
+    const match = rest.match(/^\s*(?:<ul>([\s\S]*?)<\/ul>|<p[^>]*>([\s\S]*?)<\/p>)/);
+    if (match) return stripTags(match[1] ?? match[2] ?? "");
+  }
+  return null;
+}
+
+// 「住所」見出しが無いサイトでは「場所」欄の文中に「住所：〜」という形で
+// 埋め込まれていることがあるため、そこからも抽出を試みる
+function extractAddress(html: string, venueText: string | null): string | null {
+  const dedicated = extractAfterHeading(html, ["住所"]);
+  if (dedicated) return dedicated;
+
+  if (venueText) {
+    const inline = venueText.match(/住所[:：]\s*(.+)/);
+    if (inline) return inline[1].trim();
+  }
+  return null;
 }
 
 function parseDateRange(text: string | null): { start: string | null; end: string | null } {
@@ -49,16 +84,18 @@ function parseDateRange(text: string | null): { start: string | null; end: strin
   );
   if (matches.length === 0) return { start: null, end: null };
   const start = matches[0];
-  const end = matches[1] && matches[1] !== start ? matches[1] : null;
+  const last = matches[matches.length - 1];
+  const end = last !== start ? last : null;
   return { start, end };
 }
 
 async function fetchEventLinksForMonth(
+  baseUrl: string,
   year: number,
   month: number,
   categoryId: number,
 ): Promise<string[]> {
-  const url = `${BASE}/cgi-bin/event_cal_multi/calendar.cgi?type=2&year=${year}&month=${month}&event_category=${categoryId}`;
+  const url = `${baseUrl}/cgi-bin/event_cal_multi/calendar.cgi?type=2&year=${year}&month=${month}&event_category=${categoryId}`;
   const res = await fetch(url);
   if (!res.ok) return [];
   const html = await res.text();
@@ -67,13 +104,18 @@ async function fetchEventLinksForMonth(
   const relevant = listStart >= 0 ? html.slice(listStart) : html;
 
   const hrefs = new Set<string>();
-  for (const m of relevant.matchAll(/href="(\/event\/[^"]+\.html)"/g)) {
-    hrefs.add(BASE + m[1]);
+  for (const m of relevant.matchAll(/href="([^"]*\/event\/[^"]+\.html)"/g)) {
+    const path = m[1];
+    hrefs.add(path.startsWith("http") ? path : baseUrl + path);
   }
   return [...hrefs];
 }
 
-async function fetchEventDetail(url: string, genre: string): Promise<ScrapedEvent | null> {
+async function fetchEventDetail(
+  url: string,
+  genre: string,
+  sourceId: string,
+): Promise<ScrapedEvent | null> {
   const res = await fetch(url);
   if (!res.ok) return null;
   const html = await res.text();
@@ -82,11 +124,11 @@ async function fetchEventDetail(url: string, genre: string): Promise<ScrapedEven
   const title = titleMatch ? stripTags(titleMatch[1]) : null;
   if (!title) return null;
 
-  const { start, end } = parseDateRange(extractAfterHeading(html, "開催日時"));
+  const { start, end } = parseDateRange(extractAfterHeading(html, ["開催日時", "日時"]));
   if (!start) return null;
 
-  const venueName = extractAfterHeading(html, "場所");
-  const address = extractAfterHeading(html, "住所");
+  const venueName = extractAfterHeading(html, ["場所"]);
+  const address = extractAddress(html, venueName);
 
   let lat: number | null = null;
   let lng: number | null = null;
@@ -107,12 +149,13 @@ async function fetchEventDetail(url: string, genre: string): Promise<ScrapedEven
     address,
     lat,
     lng,
+    source: sourceId,
     sourceUrl: url,
   };
 }
 
-// 今月から monthsAhead ヶ月分、対象ジャンルのイベントを取り込む
-export async function scrapeEdogawaEvents(monthsAhead = 3): Promise<ScrapedEvent[]> {
+// 今月から monthsAhead ヶ月分、設定済みの自治体ソース・対象ジャンルのイベントを取り込む
+export async function scrapeMunicipalityEvents(monthsAhead = 3): Promise<ScrapedEvent[]> {
   const now = new Date();
   const months: Array<{ year: number; month: number }> = [];
   for (let i = 0; i < monthsAhead; i++) {
@@ -120,26 +163,29 @@ export async function scrapeEdogawaEvents(monthsAhead = 3): Promise<ScrapedEvent
     months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
   }
 
-  // URL -> 見つかったジャンル名の集合
-  const urlToGenres = new Map<string, Set<string>>();
+  const results: ScrapedEvent[] = [];
 
-  for (const [genreName, categoryId] of Object.entries(TARGET_GENRES)) {
-    for (const { year, month } of months) {
-      const links = await fetchEventLinksForMonth(year, month, categoryId);
-      for (const link of links) {
-        if (!urlToGenres.has(link)) urlToGenres.set(link, new Set());
-        urlToGenres.get(link)!.add(genreName);
+  for (const source of SOURCES) {
+    // URL -> 見つかったジャンル名の集合
+    const urlToGenres = new Map<string, Set<string>>();
+
+    for (const { id: categoryId, label: genreName } of source.genres) {
+      for (const { year, month } of months) {
+        const links = await fetchEventLinksForMonth(source.baseUrl, year, month, categoryId);
+        for (const link of links) {
+          if (!urlToGenres.has(link)) urlToGenres.set(link, new Set());
+          urlToGenres.get(link)!.add(genreName);
+        }
       }
     }
-  }
 
-  const results: ScrapedEvent[] = [];
-  for (const [url, genres] of urlToGenres) {
-    const primaryGenre = [...genres][0];
-    const detail = await fetchEventDetail(url, primaryGenre);
-    if (!detail) continue;
-    detail.genre = [...genres];
-    results.push(detail);
+    for (const [url, genres] of urlToGenres) {
+      const primaryGenre = [...genres][0];
+      const detail = await fetchEventDetail(url, primaryGenre, source.id);
+      if (!detail) continue;
+      detail.genre = [...genres];
+      results.push(detail);
+    }
   }
 
   return results;

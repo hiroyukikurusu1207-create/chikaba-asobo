@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { scrapeEdogawaEvents } from "@/lib/scraper";
+import { scrapeMunicipalityEvents } from "@/lib/scraper";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { isAdminAuthenticated } from "@/lib/adminAuth";
 
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const events = await scrapeEdogawaEvents();
+  const events = await scrapeMunicipalityEvents();
   const supabase = createServiceRoleClient();
 
   const { error, count } = await supabase
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
         address: e.address,
         lat: e.lat,
         lng: e.lng,
-        source: "edogawa_official" as const,
+        source: e.source,
         source_url: e.sourceUrl,
         updated_at: new Date().toISOString(),
       })),

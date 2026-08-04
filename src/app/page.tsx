@@ -4,7 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useHomeLocation } from "@/hooks/useHomeLocation";
 import { createClient } from "@/lib/supabase/client";
-import { DEFAULT_BIKE_SPEED_KMH, bikeMinutes, haversineDistanceKm } from "@/lib/distance";
+import {
+  TRANSPORT_MODES,
+  type TransportMode,
+  travelMinutes,
+  haversineDistanceKm,
+} from "@/lib/distance";
 import type { EventRow } from "@/lib/types";
 import { EventCard } from "@/components/EventCard";
 import { HomeSetupForm } from "@/components/HomeSetupForm";
@@ -16,7 +21,13 @@ export default function Page() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [maxMinutes, setMaxMinutes] = useState(15);
-  const [speed, setSpeed] = useState(DEFAULT_BIKE_SPEED_KMH);
+  const [mode, setMode] = useState<TransportMode>("bike");
+  const [speed, setSpeed] = useState(TRANSPORT_MODES.bike.defaultSpeedKmh);
+
+  function selectMode(next: TransportMode) {
+    setMode(next);
+    setSpeed(TRANSPORT_MODES[next].defaultSpeedKmh);
+  }
   // null = 全ジャンル選択中（イベント読み込み前のデフォルト状態も兼ねる）
   const [selectedGenres, setSelectedGenres] = useState<Set<string> | null>(null);
 
@@ -53,7 +64,7 @@ export default function Page() {
       .map((e) => {
         const minutes =
           e.lat !== null && e.lng !== null
-            ? bikeMinutes(haversineDistanceKm(home, { lat: e.lat, lng: e.lng }), speed)
+            ? travelMinutes(haversineDistanceKm(home, { lat: e.lat, lng: e.lng }), speed)
             : null;
         return { event: e, minutes };
       })
@@ -94,7 +105,26 @@ export default function Page() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <label className="text-sm font-medium">自転車で何分以内?</label>
+        <label className="text-sm font-medium">移動手段</label>
+        <div className="flex flex-wrap gap-2">
+          {(Object.keys(TRANSPORT_MODES) as TransportMode[]).map((m) => (
+            <button
+              key={m}
+              onClick={() => selectMode(m)}
+              className={`px-3 py-1.5 rounded-full text-sm border ${
+                mode === m
+                  ? "bg-emerald-600 text-white border-emerald-600"
+                  : "border-black/15 dark:border-white/20"
+              }`}
+            >
+              {TRANSPORT_MODES[m].emoji} {TRANSPORT_MODES[m].label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <label className="text-sm font-medium">{TRANSPORT_MODES[mode].label}で何分以内?</label>
         <div className="flex flex-wrap gap-2">
           {MINUTE_OPTIONS.map((m) => (
             <button
@@ -111,18 +141,23 @@ export default function Page() {
           ))}
         </div>
         <details className="text-xs text-black/50 dark:text-white/50">
-          <summary className="cursor-pointer select-none">自転車の速度を調整する</summary>
+          <summary className="cursor-pointer select-none">速度を調整する(時速)</summary>
           <div className="mt-2 flex items-center gap-2">
             <input
               type="range"
-              min={8}
-              max={25}
+              min={TRANSPORT_MODES[mode].minSpeedKmh}
+              max={TRANSPORT_MODES[mode].maxSpeedKmh}
               value={speed}
               onChange={(e) => setSpeed(Number(e.target.value))}
               className="flex-1"
             />
             <span className="whitespace-nowrap">時速{speed}km</span>
           </div>
+          {mode === "train" && (
+            <p className="mt-1">
+              ※電車は駅までの徒歩や待ち時間を含めた簡易概算です。乗換検索ほど正確ではありません。
+            </p>
+          )}
         </details>
       </section>
 
@@ -167,7 +202,12 @@ export default function Page() {
         ) : (
           <ul className="flex flex-col gap-3">
             {visibleEvents.map(({ event, minutes }) => (
-              <EventCard key={event.id} event={event} minutes={minutes} />
+              <EventCard
+                key={event.id}
+                event={event}
+                minutes={minutes}
+                modeEmoji={TRANSPORT_MODES[mode].emoji}
+              />
             ))}
           </ul>
         )}

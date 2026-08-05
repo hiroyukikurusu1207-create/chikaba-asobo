@@ -66,7 +66,8 @@ export function EventCard({
       </p>
       <p className="text-xs text-muted">
         対象: {event.target_age ? event.target_age.split("\n")[0] : "指定なし"}
-        {event.cost ? ` ・ 費用: ${event.cost.split("\n")[0]}` : ""}
+        {" ・ 費用: "}
+        {event.cost ? event.cost.split("\n")[0] : "無料※記載なしのため"}
       </p>
     </li>
   );

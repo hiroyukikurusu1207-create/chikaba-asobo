@@ -80,6 +80,19 @@ function extractEventTimeDetail(html: string, labels: string[]): string | null {
   return null;
 }
 
+// 「費用」欄は「有料」とだけ書かれた<p>の直後に、具体的な金額を書いた
+// <p>が続くことがあるため、両方を連結して取得する
+function extractCostDetail(html: string): string | null {
+  const idx = html.indexOf(`<h2>費用</h2>`);
+  if (idx === -1) return null;
+  const rest = html.slice(idx + `<h2>費用</h2>`.length);
+  const match = rest.match(/^\s*<p[^>]*>([\s\S]*?)<\/p>\s*(?:<p[^>]*>([\s\S]*?)<\/p>)?/);
+  if (!match) return null;
+  const summary = stripTags(match[1] ?? "");
+  const detail = match[2] ? stripTags(match[2]) : null;
+  return detail ? `${summary} ${detail}` : summary;
+}
+
 // 「住所」見出しが無いサイトでは「場所」欄の文中に「住所：〜」という形で
 // 埋め込まれていることがあるため、そこからも抽出を試みる
 function extractAddress(html: string, venueText: string | null): string | null {
@@ -165,7 +178,7 @@ async function fetchEventDetail(
 
   const eventTime = extractEventTimeDetail(html, dateLabels);
   const targetAge = extractAfterHeading(html, ["対象", "対象・定員", "対象者"]);
-  const cost = extractAfterHeading(html, ["費用"]);
+  const cost = extractCostDetail(html);
   const venueName = extractAfterHeading(html, ["場所"]);
   const address = extractAddress(html, venueName);
 

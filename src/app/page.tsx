@@ -13,6 +13,7 @@ import {
 import type { EventRow } from "@/lib/types";
 import { EventCard } from "@/components/EventCard";
 import { HomeSetupForm } from "@/components/HomeSetupForm";
+import { COST_BUCKETS, costBucketOf } from "@/lib/cost";
 
 const MINUTE_OPTIONS = [5, 10, 15, 20, 30, 45, 60];
 
@@ -36,6 +37,8 @@ export default function Page() {
   }
   // null = 全ジャンル選択中（イベント読み込み前のデフォルト状態も兼ねる）
   const [selectedGenres, setSelectedGenres] = useState<Set<string> | null>(null);
+  // null = 全価格帯選択中
+  const [selectedCostBuckets, setSelectedCostBuckets] = useState<Set<string> | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>("distance");
 
   useEffect(() => {
@@ -73,6 +76,12 @@ export default function Page() {
           selectedGenres === null ||
           e.genre.some((g) => selectedGenres.has(g)),
       )
+      .filter((e) => {
+        if (selectedCostBuckets === null) return true;
+        const bucket = costBucketOf(e.cost);
+        // 金額が読み取れないイベントは、費用フィルターでは除外しない
+        return bucket === null || selectedCostBuckets.has(bucket);
+      })
       .map((e) => {
         const minutes =
           e.lat !== null && e.lng !== null
@@ -93,7 +102,7 @@ export default function Page() {
         if (b.minutes === null) return -1;
         return a.minutes - b.minutes;
       });
-  }, [events, home, selectedGenres, maxMinutes, speed, mode, today, sortBy]);
+  }, [events, home, selectedGenres, selectedCostBuckets, maxMinutes, speed, mode, today, sortBy]);
 
   if (!loaded) return null;
 
@@ -222,6 +231,49 @@ export default function Page() {
           </div>
         </section>
       )}
+
+      <section className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <label className="text-sm font-bold">費用</label>
+          <button
+            onClick={() =>
+              setSelectedCostBuckets((prev) =>
+                prev !== null && prev.size === 0 ? null : new Set(),
+              )
+            }
+            className="text-xs font-bold text-accent hover:underline"
+          >
+            {selectedCostBuckets !== null && selectedCostBuckets.size === 0
+              ? "すべて選択"
+              : "すべて解除"}
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {COST_BUCKETS.map(({ id, label }) => {
+            const active = selectedCostBuckets === null || selectedCostBuckets.has(id);
+            return (
+              <button
+                key={id}
+                onClick={() =>
+                  setSelectedCostBuckets((prev) => {
+                    const next = new Set(prev ?? COST_BUCKETS.map((b) => b.id));
+                    if (next.has(id)) next.delete(id);
+                    else next.add(id);
+                    return next;
+                  })
+                }
+                className={`px-3.5 py-1.5 rounded-full text-sm font-bold border transition-colors ${
+                  active
+                    ? "bg-highlight text-highlight-foreground border-highlight shadow-sm"
+                    : "bg-card border-card-border text-muted"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       <section className="flex items-center justify-between gap-2">
         <label className="text-sm font-bold">並び順</label>

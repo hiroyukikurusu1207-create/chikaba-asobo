@@ -28,8 +28,11 @@ export function AdminLogin() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <label className="text-sm font-medium" htmlFor="admin-password">
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-2xl bg-card border border-card-border shadow-sm p-4 flex flex-col gap-3"
+    >
+      <label className="text-sm font-bold" htmlFor="admin-password">
         パスワード
       </label>
       <input
@@ -37,13 +40,13 @@ export function AdminLogin() {
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="rounded-lg border border-black/15 dark:border-white/20 bg-transparent px-3 py-2"
+        className="rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
       />
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm font-bold text-accent">{error}</p>}
       <button
         type="submit"
         disabled={submitting || !password}
-        className="rounded-lg bg-blue-600 text-white py-2.5 font-medium disabled:opacity-50"
+        className="rounded-full bg-primary text-primary-foreground py-2.5 font-extrabold shadow-sm disabled:opacity-50"
       >
         ログイン
       </button>

@@ -19,25 +19,25 @@ export function EventCard({
   modeEmoji: string;
 }) {
   return (
-    <li className="rounded-xl border border-black/10 dark:border-white/15 p-4 flex flex-col gap-1.5">
+    <li className="rounded-2xl bg-card border border-card-border shadow-sm p-4 flex flex-col gap-1.5">
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-wrap gap-1">
           {event.genre.map((g) => (
             <span
               key={g}
-              className="text-xs rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-200 px-2 py-0.5"
+              className="text-xs font-bold rounded-full bg-highlight text-highlight-foreground px-2 py-0.5"
             >
               {g}
             </span>
           ))}
         </div>
         {minutes !== null && (
-          <span className="text-sm font-medium text-blue-700 dark:text-blue-300 whitespace-nowrap">
+          <span className="text-sm font-bold text-accent whitespace-nowrap">
             {modeEmoji} 約{minutes}分
           </span>
         )}
       </div>
-      <h3 className="font-semibold leading-snug">
+      <h3 className="font-bold leading-snug">
         {event.source_url ? (
           <a
             href={event.source_url}
@@ -51,7 +51,7 @@ export function EventCard({
           event.title
         )}
       </h3>
-      <p className="text-sm text-black/70 dark:text-white/70">
+      <p className="text-sm text-muted">
         {formatDateRange(event.start_date, event.end_date)}
         {event.venue_name ? ` ・ ${event.venue_name.split("\n")[0]}` : ""}
       </p>

@@ -76,31 +76,34 @@ export function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="rounded-xl border border-black/10 dark:border-white/15 p-4 flex flex-col gap-2">
-        <p className="text-sm font-medium">江戸川区公式カレンダーの同期</p>
+      <section className="rounded-2xl bg-card border border-card-border shadow-sm p-4 flex flex-col gap-2">
+        <p className="text-sm font-bold">自治体公式カレンダーの同期</p>
         <button
           onClick={handleSync}
           disabled={syncing}
-          className="self-start rounded-lg bg-black/80 dark:bg-white/90 text-white dark:text-black px-3 py-1.5 text-sm disabled:opacity-50"
+          className="self-start rounded-full bg-primary text-primary-foreground px-4 py-1.5 text-sm font-extrabold shadow-sm disabled:opacity-50"
         >
           {syncing ? "実行中..." : "今すぐ同期を実行"}
         </button>
-        {syncMessage && <p className="text-xs text-black/60 dark:text-white/60">{syncMessage}</p>}
+        {syncMessage && <p className="text-xs text-muted">{syncMessage}</p>}
       </section>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <p className="text-sm font-medium">イベントを手動追加</p>
+      <form
+        onSubmit={handleSubmit}
+        className="rounded-2xl bg-card border border-card-border shadow-sm p-4 flex flex-col gap-3"
+      >
+        <p className="text-sm font-bold">イベントを手動追加</p>
         <input
           placeholder="タイトル *"
           value={form.title}
           onChange={(e) => update("title", e.target.value)}
-          className="rounded-lg border border-black/15 dark:border-white/20 bg-transparent px-3 py-2"
+          className="rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
         />
         <input
           placeholder="ジャンル（カンマ区切り 例: お祭り,文化・芸術）"
           value={form.genre}
           onChange={(e) => update("genre", e.target.value)}
-          className="rounded-lg border border-black/15 dark:border-white/20 bg-transparent px-3 py-2"
+          className="rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
         />
         <div className="flex gap-2">
           <input
@@ -122,32 +125,32 @@ export function AdminDashboard() {
           placeholder="会場名"
           value={form.venueName}
           onChange={(e) => update("venueName", e.target.value)}
-          className="rounded-lg border border-black/15 dark:border-white/20 bg-transparent px-3 py-2"
+          className="rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
         />
         <input
           placeholder="住所（分かる範囲で。地図検索に使用します）"
           value={form.address}
           onChange={(e) => update("address", e.target.value)}
-          className="rounded-lg border border-black/15 dark:border-white/20 bg-transparent px-3 py-2"
+          className="rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
         />
         <textarea
           placeholder="説明"
           value={form.description}
           onChange={(e) => update("description", e.target.value)}
-          className="rounded-lg border border-black/15 dark:border-white/20 bg-transparent px-3 py-2"
+          className="rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
           rows={3}
         />
         <input
           placeholder="参照URL"
           value={form.sourceUrl}
           onChange={(e) => update("sourceUrl", e.target.value)}
-          className="rounded-lg border border-black/15 dark:border-white/20 bg-transparent px-3 py-2"
+          className="rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
         />
-        {message && <p className="text-sm">{message}</p>}
+        {message && <p className="text-sm font-bold">{message}</p>}
         <button
           type="submit"
           disabled={submitting || !form.title || !form.startDate}
-          className="rounded-lg bg-blue-600 text-white py-2.5 font-medium disabled:opacity-50"
+          className="rounded-full bg-primary text-primary-foreground py-2.5 font-extrabold shadow-sm disabled:opacity-50"
         >
           {submitting ? "追加中..." : "追加する"}
         </button>

@@ -1,28 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { M_PLUS_Rounded_1c } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const mplusRounded = M_PLUS_Rounded_1c({
+  variable: "--font-mplus-rounded",
+  weight: ["400", "500", "700", "800"],
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: "ちかばであそぼーよ",
-  description: "自転車で行ける範囲のフェス・祭り・文化イベントを手軽に探せるアプリ",
+  description: "自宅からの移動時間で探せる、フェス・祭り・文化イベントのお散歩アプリ",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="ja" className={`${mplusRounded.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

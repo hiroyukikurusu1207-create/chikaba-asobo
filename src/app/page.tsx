@@ -85,36 +85,38 @@ export default function Page() {
   return (
     <main className="flex-1 mx-auto w-full max-w-lg px-4 py-6 flex flex-col gap-5">
       <header className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">ちかばであそぼーよ</h1>
+        <h1 className="text-xl font-extrabold tracking-tight">
+          ちかばで<span className="text-accent">あそぼーよ</span>
+        </h1>
         <Link
           href="/admin"
-          className="text-xs text-black/40 dark:text-white/40 hover:underline"
+          className="text-xs text-muted hover:text-foreground hover:underline"
         >
           管理
         </Link>
       </header>
 
-      <section className="rounded-xl bg-black/5 dark:bg-white/5 p-3 flex items-center justify-between gap-2">
+      <section className="rounded-2xl bg-card border border-card-border shadow-sm p-3.5 flex items-center justify-between gap-2">
         <p className="text-sm truncate">🏠 {home.address}</p>
         <button
           onClick={clearHome}
-          className="text-xs shrink-0 text-blue-700 dark:text-blue-300 hover:underline"
+          className="text-xs shrink-0 font-bold text-accent hover:underline"
         >
           変更
         </button>
       </section>
 
       <section className="flex flex-col gap-2">
-        <label className="text-sm font-medium">移動手段</label>
+        <label className="text-sm font-bold">移動手段</label>
         <div className="flex flex-wrap gap-2">
           {(Object.keys(TRANSPORT_MODES) as TransportMode[]).map((m) => (
             <button
               key={m}
               onClick={() => selectMode(m)}
-              className={`px-3 py-1.5 rounded-full text-sm border ${
+              className={`px-3.5 py-1.5 rounded-full text-sm font-bold border transition-colors ${
                 mode === m
-                  ? "bg-emerald-600 text-white border-emerald-600"
-                  : "border-black/15 dark:border-white/20"
+                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                  : "bg-card border-card-border text-muted"
               }`}
             >
               {TRANSPORT_MODES[m].emoji} {TRANSPORT_MODES[m].label}
@@ -124,23 +126,23 @@ export default function Page() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <label className="text-sm font-medium">{TRANSPORT_MODES[mode].label}で何分以内?</label>
+        <label className="text-sm font-bold">{TRANSPORT_MODES[mode].label}で何分以内?</label>
         <div className="flex flex-wrap gap-2">
           {MINUTE_OPTIONS.map((m) => (
             <button
               key={m}
               onClick={() => setMaxMinutes(m)}
-              className={`px-3 py-1.5 rounded-full text-sm border ${
+              className={`px-3.5 py-1.5 rounded-full text-sm font-bold border transition-colors ${
                 maxMinutes === m
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "border-black/15 dark:border-white/20"
+                  ? "bg-accent text-accent-foreground border-accent shadow-sm"
+                  : "bg-card border-card-border text-muted"
               }`}
             >
               {m}分
             </button>
           ))}
         </div>
-        <details className="text-xs text-black/50 dark:text-white/50">
+        <details className="text-xs text-muted">
           <summary className="cursor-pointer select-none">速度を調整する(時速)</summary>
           <div className="mt-2 flex items-center gap-2">
             <input
@@ -149,7 +151,7 @@ export default function Page() {
               max={TRANSPORT_MODES[mode].maxSpeedKmh}
               value={speed}
               onChange={(e) => setSpeed(Number(e.target.value))}
-              className="flex-1"
+              className="flex-1 accent-primary"
             />
             <span className="whitespace-nowrap">時速{speed}km</span>
           </div>
@@ -163,7 +165,7 @@ export default function Page() {
 
       {allGenres.length > 0 && (
         <section className="flex flex-col gap-2">
-          <label className="text-sm font-medium">ジャンル</label>
+          <label className="text-sm font-bold">ジャンル</label>
           <div className="flex flex-wrap gap-2">
             {allGenres.map((g) => {
               const active = selectedGenres === null || selectedGenres.has(g);
@@ -178,10 +180,10 @@ export default function Page() {
                       return next;
                     })
                   }
-                  className={`px-3 py-1.5 rounded-full text-sm border ${
+                  className={`px-3.5 py-1.5 rounded-full text-sm font-bold border transition-colors ${
                     active
-                      ? "bg-orange-500 text-white border-orange-500"
-                      : "border-black/15 dark:border-white/20"
+                      ? "bg-highlight text-highlight-foreground border-highlight shadow-sm"
+                      : "bg-card border-card-border text-muted"
                   }`}
                 >
                   {g}
@@ -194,9 +196,9 @@ export default function Page() {
 
       <section className="flex flex-col gap-3">
         {loadingEvents ? (
-          <p className="text-sm text-black/50 dark:text-white/50">読み込み中...</p>
+          <p className="text-sm text-muted">読み込み中...</p>
         ) : visibleEvents.length === 0 ? (
-          <p className="text-sm text-black/50 dark:text-white/50">
+          <p className="text-sm text-muted">
             条件に合うイベントが見つかりませんでした。分数を増やすかジャンルを見直してみてください。
           </p>
         ) : (

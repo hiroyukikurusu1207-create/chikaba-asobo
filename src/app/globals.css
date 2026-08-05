@@ -29,21 +29,7 @@
   --font-sans: var(--font-mplus-rounded);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #2b2119;
-    --foreground: #f5e9d6;
-    --card: #382c22;
-    --card-border: rgba(245, 233, 214, 0.12);
-    --muted: rgba(245, 233, 214, 0.6);
-    --primary: #f5a937;
-    --primary-foreground: #2b2119;
-    --accent: #f08a5f;
-    --accent-foreground: #2b2119;
-    --highlight: #f6d85a;
-    --highlight-foreground: #2b2119;
-  }
-}
+/* ルクミー風の暖色ライトテーマで統一するため、ダークモードは採用しない */
 
 body {
   background: var(--background);

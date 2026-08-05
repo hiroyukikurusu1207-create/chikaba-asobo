@@ -111,14 +111,14 @@ export function AdminDashboard() {
             placeholder="開始日 *"
             value={form.startDate}
             onChange={(e) => update("startDate", e.target.value)}
-            className="flex-1 rounded-lg border border-black/15 dark:border-white/20 bg-transparent px-3 py-2"
+            className="flex-1 rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
           />
           <input
             type="date"
             placeholder="終了日"
             value={form.endDate}
             onChange={(e) => update("endDate", e.target.value)}
-            className="flex-1 rounded-lg border border-black/15 dark:border-white/20 bg-transparent px-3 py-2"
+            className="flex-1 rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
           />
         </div>
         <input

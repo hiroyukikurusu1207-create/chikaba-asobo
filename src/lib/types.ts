@@ -9,6 +9,8 @@ export type EventRow = {
   lat: number | null;
   lng: number | null;
   description: string | null;
+  target_age: string | null;
+  event_time: string | null;
   source: string;
   source_url: string | null;
   created_at: string;

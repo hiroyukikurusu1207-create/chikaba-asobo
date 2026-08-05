@@ -36,6 +36,8 @@ export type ScrapedEvent = {
   address: string | null;
   lat: number | null;
   lng: number | null;
+  targetAge: string | null;
+  eventTime: string | null;
   source: string;
   sourceUrl: string;
 };
@@ -60,6 +62,19 @@ function extractAfterHeading(html: string, labels: string[]): string | null {
     const rest = html.slice(idx + `<h2>${label}</h2>`.length);
     const match = rest.match(/^\s*(?:<ul>([\s\S]*?)<\/ul>|<p[^>]*>([\s\S]*?)<\/p>)/);
     if (match) return stripTags(match[1] ?? match[2] ?? "");
+  }
+  return null;
+}
+
+// 「開催日時」欄は日付の<ul>の直後に時間帯の詳細が<p>で続くことがあるため、
+// それを「開催時間」として別途抽出する（<ul>単体、または<ul>が無い場合は取得しない）
+function extractEventTimeDetail(html: string, labels: string[]): string | null {
+  for (const label of labels) {
+    const idx = html.indexOf(`<h2>${label}</h2>`);
+    if (idx === -1) continue;
+    const rest = html.slice(idx + `<h2>${label}</h2>`.length);
+    const match = rest.match(/^\s*<ul>[\s\S]*?<\/ul>\s*<p[^>]*>([\s\S]*?)<\/p>/);
+    if (match) return stripTags(match[1]);
   }
   return null;
 }
@@ -124,9 +139,12 @@ async function fetchEventDetail(
   const title = titleMatch ? stripTags(titleMatch[1]) : null;
   if (!title) return null;
 
-  const { start, end } = parseDateRange(extractAfterHeading(html, ["開催日時", "日時"]));
+  const dateLabels = ["開催日時", "日時"];
+  const { start, end } = parseDateRange(extractAfterHeading(html, dateLabels));
   if (!start) return null;
 
+  const eventTime = extractEventTimeDetail(html, dateLabels);
+  const targetAge = extractAfterHeading(html, ["対象", "対象・定員", "対象者"]);
   const venueName = extractAfterHeading(html, ["場所"]);
   const address = extractAddress(html, venueName);
 
@@ -149,6 +167,8 @@ async function fetchEventDetail(
     address,
     lat,
     lng,
+    targetAge,
+    eventTime,
     source: sourceId,
     sourceUrl: url,
   };

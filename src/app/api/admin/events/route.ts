@@ -11,6 +11,8 @@ type NewEventPayload = {
   venueName?: string | null;
   address?: string | null;
   description?: string | null;
+  targetAge?: string | null;
+  eventTime?: string | null;
   sourceUrl?: string | null;
 };
 
@@ -47,6 +49,8 @@ export async function POST(request: Request) {
       lat,
       lng,
       description: body.description?.trim() || null,
+      target_age: body.targetAge?.trim() || null,
+      event_time: body.eventTime?.trim() || null,
       source: "manual",
       source_url: body.sourceUrl?.trim() || null,
     })

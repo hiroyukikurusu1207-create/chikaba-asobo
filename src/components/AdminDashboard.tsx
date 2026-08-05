@@ -10,6 +10,8 @@ const emptyForm = {
   venueName: "",
   address: "",
   description: "",
+  targetAge: "",
+  eventTime: "",
   sourceUrl: "",
 };
 
@@ -43,6 +45,8 @@ export function AdminDashboard() {
           venueName: form.venueName || null,
           address: form.address || null,
           description: form.description || null,
+          targetAge: form.targetAge || null,
+          eventTime: form.eventTime || null,
           sourceUrl: form.sourceUrl || null,
         }),
       });
@@ -133,6 +137,20 @@ export function AdminDashboard() {
           onChange={(e) => update("address", e.target.value)}
           className="rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
         />
+        <div className="flex gap-2">
+          <input
+            placeholder="開催時間（例: 10:00〜17:00）"
+            value={form.eventTime}
+            onChange={(e) => update("eventTime", e.target.value)}
+            className="flex-1 rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
+          />
+          <input
+            placeholder="対象年齢（例: どなたでも）"
+            value={form.targetAge}
+            onChange={(e) => update("targetAge", e.target.value)}
+            className="flex-1 rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
+          />
+        </div>
         <textarea
           placeholder="説明"
           value={form.description}

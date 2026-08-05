@@ -61,8 +61,12 @@ export function EventCard({
       </h3>
       <p className="text-sm text-muted">
         {formatDateRange(event.start_date, event.end_date)}
+        {event.event_time ? ` ${event.event_time.split("\n")[0]}` : ""}
         {event.venue_name ? ` ・ ${event.venue_name.split("\n")[0]}` : ""}
       </p>
+      {event.target_age && (
+        <p className="text-xs text-muted">対象: {event.target_age.split("\n")[0]}</p>
+      )}
     </li>
   );
 }

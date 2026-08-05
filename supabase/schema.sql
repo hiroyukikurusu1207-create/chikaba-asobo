@@ -12,6 +12,8 @@ create table if not exists public.events (
   lat double precision,
   lng double precision,
   description text,
+  target_age text,
+  event_time text,
   source text not null default 'manual',
   source_url text unique,
   created_at timestamptz not null default now(),
@@ -29,3 +31,10 @@ create policy "events_select_anon" on public.events
 
 -- insert/update/delete はポリシーを作らない = anon/authenticatedキーからは常に拒否。
 -- サーバー側の service role key のみが書き込み可能（RLSをバイパスする）。
+
+-- ==============================
+-- マイグレーション: 対象年齢・開催時間の追加
+-- 既にテーブルを作成済みの場合は、この2行だけをSQL Editorで実行してください。
+-- ==============================
+alter table public.events add column if not exists target_age text;
+alter table public.events add column if not exists event_time text;

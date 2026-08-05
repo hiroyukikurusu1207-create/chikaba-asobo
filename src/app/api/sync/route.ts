@@ -31,6 +31,8 @@ export async function POST(request: Request) {
         address: e.address,
         lat: e.lat,
         lng: e.lng,
+        target_age: e.targetAge,
+        event_time: e.eventTime,
         source: e.source,
         source_url: e.sourceUrl,
         updated_at: new Date().toISOString(),

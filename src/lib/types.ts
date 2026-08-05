@@ -11,6 +11,7 @@ export type EventRow = {
   description: string | null;
   target_age: string | null;
   event_time: string | null;
+  cost: string | null;
   source: string;
   source_url: string | null;
   created_at: string;

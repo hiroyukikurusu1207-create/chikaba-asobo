@@ -71,7 +71,11 @@ export default function Page() {
       .map((e) => {
         const minutes =
           e.lat !== null && e.lng !== null
-            ? travelMinutes(haversineDistanceKm(home, { lat: e.lat, lng: e.lng }), speed)
+            ? travelMinutes(
+                haversineDistanceKm(home, { lat: e.lat, lng: e.lng }),
+                speed,
+                TRANSPORT_MODES[mode].detourFactor,
+              )
             : null;
         return { event: e, minutes };
       })
@@ -84,7 +88,7 @@ export default function Page() {
         if (b.minutes === null) return -1;
         return a.minutes - b.minutes;
       });
-  }, [events, home, selectedGenres, maxMinutes, speed, today, sortBy]);
+  }, [events, home, selectedGenres, maxMinutes, speed, mode, today, sortBy]);
 
   if (!loaded) return null;
 

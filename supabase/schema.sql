@@ -14,6 +14,7 @@ create table if not exists public.events (
   description text,
   target_age text,
   event_time text,
+  cost text,
   source text not null default 'manual',
   source_url text unique,
   created_at timestamptz not null default now(),
@@ -38,3 +39,8 @@ create policy "events_select_anon" on public.events
 -- ==============================
 alter table public.events add column if not exists target_age text;
 alter table public.events add column if not exists event_time text;
+
+-- ==============================
+-- マイグレーション: 費用の追加
+-- ==============================
+alter table public.events add column if not exists cost text;

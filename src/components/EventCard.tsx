@@ -64,9 +64,10 @@ export function EventCard({
         {event.event_time ? ` ${event.event_time.split("\n")[0]}` : ""}
         {event.venue_name ? ` ・ ${event.venue_name.split("\n")[0]}` : ""}
       </p>
-      {event.target_age && (
-        <p className="text-xs text-muted">対象: {event.target_age.split("\n")[0]}</p>
-      )}
+      <p className="text-xs text-muted">
+        対象: {event.target_age ? event.target_age.split("\n")[0] : "指定なし"}
+        {event.cost ? ` ・ 費用: ${event.cost.split("\n")[0]}` : ""}
+      </p>
     </li>
   );
 }

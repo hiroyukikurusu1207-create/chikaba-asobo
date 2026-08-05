@@ -12,6 +12,7 @@ const emptyForm = {
   description: "",
   targetAge: "",
   eventTime: "",
+  cost: "",
   sourceUrl: "",
 };
 
@@ -47,6 +48,7 @@ export function AdminDashboard() {
           description: form.description || null,
           targetAge: form.targetAge || null,
           eventTime: form.eventTime || null,
+          cost: form.cost || null,
           sourceUrl: form.sourceUrl || null,
         }),
       });
@@ -151,6 +153,12 @@ export function AdminDashboard() {
             className="flex-1 rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
           />
         </div>
+        <input
+          placeholder="費用（例: 無料、大人300円）"
+          value={form.cost}
+          onChange={(e) => update("cost", e.target.value)}
+          className="rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
+        />
         <textarea
           placeholder="説明"
           value={form.description}

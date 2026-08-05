@@ -13,6 +13,7 @@ type NewEventPayload = {
   description?: string | null;
   targetAge?: string | null;
   eventTime?: string | null;
+  cost?: string | null;
   sourceUrl?: string | null;
 };
 
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
       description: body.description?.trim() || null,
       target_age: body.targetAge?.trim() || null,
       event_time: body.eventTime?.trim() || null,
+      cost: body.cost?.trim() || null,
       source: "manual",
       source_url: body.sourceUrl?.trim() || null,
     })

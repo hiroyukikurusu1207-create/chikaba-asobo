@@ -38,6 +38,7 @@ export type ScrapedEvent = {
   lng: number | null;
   targetAge: string | null;
   eventTime: string | null;
+  cost: string | null;
   source: string;
   sourceUrl: string;
 };
@@ -90,6 +91,25 @@ function extractAddress(html: string, venueText: string | null): string | null {
     if (inline) return inline[1].trim();
   }
   return null;
+}
+
+// 自治体側の「文化・芸術」「文化・観光」区分は大雑把すぎるため、
+// タイトル・会場名のキーワードでさらに細かいジャンルに振り分ける
+const BROAD_CULTURE_GENRES = new Set(["文化・芸術", "文化・観光"]);
+const CULTURE_SUBGENRES: { pattern: RegExp; label: string }[] = [
+  { pattern: /寄席|落語|川柳|講談|独演会|二人会|ひとり会|圓藏亭/, label: "寄席・演芸" },
+  { pattern: /コンサート|音楽|ピアノ|オーケストラ|吹奏楽/, label: "音楽" },
+  { pattern: /教室|講座|体験/, label: "教室・体験" },
+  { pattern: /写真展|美術|絵画|工芸|デザイン|展示/, label: "展示・アート" },
+];
+
+function refineGenres(title: string, venueName: string | null, rawGenres: string[]): string[] {
+  const text = `${title} ${venueName ?? ""}`;
+  return rawGenres.map((g) => {
+    if (!BROAD_CULTURE_GENRES.has(g)) return g;
+    const match = CULTURE_SUBGENRES.find((c) => c.pattern.test(text));
+    return match ? match.label : g;
+  });
 }
 
 function parseDateRange(text: string | null): { start: string | null; end: string | null } {
@@ -145,6 +165,7 @@ async function fetchEventDetail(
 
   const eventTime = extractEventTimeDetail(html, dateLabels);
   const targetAge = extractAfterHeading(html, ["対象", "対象・定員", "対象者"]);
+  const cost = extractAfterHeading(html, ["費用"]);
   const venueName = extractAfterHeading(html, ["場所"]);
   const address = extractAddress(html, venueName);
 
@@ -169,6 +190,7 @@ async function fetchEventDetail(
     lng,
     targetAge,
     eventTime,
+    cost,
     source: sourceId,
     sourceUrl: url,
   };
@@ -203,7 +225,7 @@ export async function scrapeMunicipalityEvents(monthsAhead = 3): Promise<Scraped
       const primaryGenre = [...genres][0];
       const detail = await fetchEventDetail(url, primaryGenre, source.id);
       if (!detail) continue;
-      detail.genre = [...genres];
+      detail.genre = refineGenres(detail.title, detail.venueName, [...genres]);
       results.push(detail);
     }
   }

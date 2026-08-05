@@ -18,7 +18,8 @@ export function AdminLogin() {
         body: JSON.stringify({ password }),
       });
       if (!res.ok) {
-        setError("パスワードが違います");
+        const body = await res.json().catch(() => null);
+        setError(body?.error ?? "パスワードが違います");
         return;
       }
       window.location.reload();

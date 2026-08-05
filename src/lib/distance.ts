@@ -22,6 +22,9 @@ export const TRANSPORT_MODES: Record<TransportMode, TransportModeConfig> = {
   train: { label: "電車", emoji: "🚃", defaultSpeedKmh: 25, minSpeedKmh: 12, maxSpeedKmh: 45, detourFactor: 1 },
 };
 
+// ベビーカーを押しての平均的な歩行速度の目安
+export const STROLLER_SPEED_KMH = 4;
+
 // 地球を球体近似したhaversine距離（km）
 export function haversineDistanceKm(a: LatLng, b: LatLng): number {
   const R = 6371;

@@ -9,11 +9,13 @@ import {
   type TransportMode,
   travelMinutes,
   haversineDistanceKm,
+  STROLLER_SPEED_KMH,
 } from "@/lib/distance";
 import type { EventRow } from "@/lib/types";
 import { EventCard } from "@/components/EventCard";
 import { HomeSetupForm } from "@/components/HomeSetupForm";
 import { COST_BUCKETS, costBucketOf } from "@/lib/cost";
+import { WEEKDAYS, weekdaysCovered } from "@/lib/weekday";
 
 const MINUTE_OPTIONS = [5, 10, 15, 20, 30, 45, 60];
 
@@ -39,6 +41,8 @@ export default function Page() {
   const [selectedGenres, setSelectedGenres] = useState<Set<string> | null>(null);
   // null = 全価格帯選択中
   const [selectedCostBuckets, setSelectedCostBuckets] = useState<Set<string> | null>(null);
+  // null = 全曜日選択中
+  const [selectedWeekdays, setSelectedWeekdays] = useState<Set<number> | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>("distance");
 
   useEffect(() => {
@@ -82,6 +86,12 @@ export default function Page() {
         // 金額が読み取れないイベントは、費用フィルターでは除外しない
         return bucket === null || selectedCostBuckets.has(bucket);
       })
+      .filter((e) => {
+        if (selectedWeekdays === null) return true;
+        const covered = weekdaysCovered(e.start_date, e.end_date);
+        // 長期間開催などで曜日を特定できないイベントは除外しない
+        return covered === null || [...covered].some((w) => selectedWeekdays.has(w));
+      })
       .map((e) => {
         const minutes =
           e.lat !== null && e.lng !== null
@@ -102,7 +112,18 @@ export default function Page() {
         if (b.minutes === null) return -1;
         return a.minutes - b.minutes;
       });
-  }, [events, home, selectedGenres, selectedCostBuckets, maxMinutes, speed, mode, today, sortBy]);
+  }, [
+    events,
+    home,
+    selectedGenres,
+    selectedCostBuckets,
+    selectedWeekdays,
+    maxMinutes,
+    speed,
+    mode,
+    today,
+    sortBy,
+  ]);
 
   if (!loaded) return null;
 
@@ -179,10 +200,25 @@ export default function Page() {
               max={TRANSPORT_MODES[mode].maxSpeedKmh}
               value={speed}
               onChange={(e) => setSpeed(Number(e.target.value))}
+              list={mode === "walk" ? "stroller-speed-tick" : undefined}
               className="flex-1 accent-primary"
             />
+            {mode === "walk" && (
+              <datalist id="stroller-speed-tick">
+                <option value={STROLLER_SPEED_KMH}></option>
+              </datalist>
+            )}
             <span className="whitespace-nowrap">時速{speed}km</span>
           </div>
+          {mode === "walk" && (
+            <button
+              type="button"
+              onClick={() => setSpeed(STROLLER_SPEED_KMH)}
+              className="mt-2 text-accent font-bold hover:underline"
+            >
+              🍼 ベビーカーの目安(時速{STROLLER_SPEED_KMH}km)に合わせる
+            </button>
+          )}
           {mode === "train" && (
             <p className="mt-1">
               ※電車は駅までの徒歩や待ち時間を含めた簡易概算です。乗換検索ほど正確ではありません。
@@ -263,6 +299,45 @@ export default function Page() {
                   })
                 }
                 className={`px-3.5 py-1.5 rounded-full text-sm font-bold border transition-colors ${
+                  active
+                    ? "bg-highlight text-highlight-foreground border-highlight shadow-sm"
+                    : "bg-card border-card-border text-muted"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <label className="text-sm font-bold">曜日</label>
+          <button
+            onClick={() =>
+              setSelectedWeekdays((prev) => (prev !== null && prev.size === 0 ? null : new Set()))
+            }
+            className="text-xs font-bold text-accent hover:underline"
+          >
+            {selectedWeekdays !== null && selectedWeekdays.size === 0 ? "すべて選択" : "すべて解除"}
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {WEEKDAYS.map((label, w) => {
+            const active = selectedWeekdays === null || selectedWeekdays.has(w);
+            return (
+              <button
+                key={w}
+                onClick={() =>
+                  setSelectedWeekdays((prev) => {
+                    const next = new Set(prev ?? WEEKDAYS.map((_, i) => i));
+                    if (next.has(w)) next.delete(w);
+                    else next.add(w);
+                    return next;
+                  })
+                }
+                className={`w-10 h-10 rounded-full text-sm font-bold border transition-colors ${
                   active
                     ? "bg-highlight text-highlight-foreground border-highlight shadow-sm"
                     : "bg-card border-card-border text-muted"

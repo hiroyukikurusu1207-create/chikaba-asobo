@@ -1,17 +1,10 @@
 import type { EventRow } from "@/lib/types";
-
-const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
-
-// 実行環境のタイムゾーンに依存しないよう、UTC基準で曜日を計算する
-function weekdayOf(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  return WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
-}
+import { WEEKDAYS, weekdayOf } from "@/lib/weekday";
 
 function formatDateRange(start: string, end: string | null): string {
   const fmt = (iso: string) => {
     const [, m, d] = iso.split("-");
-    return `${Number(m)}/${Number(d)}(${weekdayOf(iso)})`;
+    return `${Number(m)}/${Number(d)}(${WEEKDAYS[weekdayOf(iso)]})`;
   };
   if (!end || end === start) return fmt(start);
   return `${fmt(start)}〜${fmt(end)}`;

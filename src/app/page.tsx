@@ -118,9 +118,9 @@ export default function Page() {
         </h1>
         <Link
           href="/admin"
-          className="text-xs text-muted hover:text-foreground hover:underline"
+          className="text-xs font-bold text-accent hover:underline"
         >
-          管理
+          ＋ イベントを追加
         </Link>
       </header>
 

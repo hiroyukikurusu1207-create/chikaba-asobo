@@ -16,6 +16,12 @@ import { HomeSetupForm } from "@/components/HomeSetupForm";
 
 const MINUTE_OPTIONS = [5, 10, 15, 20, 30, 45, 60];
 
+type SortBy = "distance" | "date";
+const SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  { value: "distance", label: "近い順" },
+  { value: "date", label: "開催日順" },
+];
+
 export default function Page() {
   const { home, setHome, clearHome, loaded } = useHomeLocation();
   const [events, setEvents] = useState<EventRow[]>([]);
@@ -30,6 +36,7 @@ export default function Page() {
   }
   // null = 全ジャンル選択中（イベント読み込み前のデフォルト状態も兼ねる）
   const [selectedGenres, setSelectedGenres] = useState<Set<string> | null>(null);
+  const [sortBy, setSortBy] = useState<SortBy>("distance");
 
   useEffect(() => {
     const supabase = createClient();
@@ -70,11 +77,14 @@ export default function Page() {
       })
       .filter(({ minutes }) => minutes === null || minutes <= maxMinutes)
       .sort((a, b) => {
+        if (sortBy === "date") {
+          return a.event.start_date.localeCompare(b.event.start_date);
+        }
         if (a.minutes === null) return 1;
         if (b.minutes === null) return -1;
         return a.minutes - b.minutes;
       });
-  }, [events, home, selectedGenres, maxMinutes, speed, today]);
+  }, [events, home, selectedGenres, maxMinutes, speed, today, sortBy]);
 
   if (!loaded) return null;
 
@@ -193,6 +203,25 @@ export default function Page() {
           </div>
         </section>
       )}
+
+      <section className="flex items-center justify-between gap-2">
+        <label className="text-sm font-bold">並び順</label>
+        <div className="flex gap-2">
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setSortBy(opt.value)}
+              className={`px-3.5 py-1.5 rounded-full text-sm font-bold border transition-colors ${
+                sortBy === opt.value
+                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                  : "bg-card border-card-border text-muted"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </section>
 
       <section className="flex flex-col gap-3">
         {loadingEvents ? (

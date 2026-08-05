@@ -53,7 +53,12 @@ export default function Page() {
   const allGenres = useMemo(() => {
     const set = new Set<string>();
     events.forEach((e) => e.genre.forEach((g) => set.add(g)));
-    return [...set].sort();
+    // 「その他」は常に一覧の最後に配置する
+    return [...set].sort((a, b) => {
+      if (a === "その他") return 1;
+      if (b === "その他") return -1;
+      return a.localeCompare(b, "ja");
+    });
   }, [events]);
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -179,7 +184,17 @@ export default function Page() {
 
       {allGenres.length > 0 && (
         <section className="flex flex-col gap-2">
-          <label className="text-sm font-bold">ジャンル</label>
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-sm font-bold">ジャンル</label>
+            <button
+              onClick={() =>
+                setSelectedGenres((prev) => (prev !== null && prev.size === 0 ? null : new Set()))
+              }
+              className="text-xs font-bold text-accent hover:underline"
+            >
+              {selectedGenres !== null && selectedGenres.size === 0 ? "すべて選択" : "すべて解除"}
+            </button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {allGenres.map((g) => {
               const active = selectedGenres === null || selectedGenres.has(g);

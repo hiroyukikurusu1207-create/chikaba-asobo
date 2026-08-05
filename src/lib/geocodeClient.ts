@@ -38,9 +38,23 @@ async function geocodeViaGsi(query: string): Promise<LatLng | null> {
   return { lat, lng };
 }
 
+// Nominatimの利用ポリシー(最大1req/秒)を守るため、呼び出し間隔を空ける。
+// モジュールスコープの状態なので、1回のサーバープロセス内で連続してまとめて
+// ジオコーディングする場合(同期処理・一括インポート等)でも間隔が守られる。
+let lastNominatimCallAt = 0;
+async function throttleNominatim(): Promise<void> {
+  const elapsed = Date.now() - lastNominatimCallAt;
+  const minIntervalMs = 1100;
+  if (elapsed < minIntervalMs) {
+    await new Promise((resolve) => setTimeout(resolve, minIntervalMs - elapsed));
+  }
+  lastNominatimCallAt = Date.now();
+}
+
 // OpenStreetMap Nominatim。神社・公園などの施設名（POI）に強いフォールバック。
 // 無料の共用インスタンスのため、User-Agentを明示し逐次呼び出しに留める。
 async function geocodeViaNominatim(query: string): Promise<LatLng | null> {
+  await throttleNominatim();
   const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=jp`;
   const res = await fetch(url, {
     headers: { "User-Agent": "chikaba-asobo/1.0 (personal event-finder app)" },

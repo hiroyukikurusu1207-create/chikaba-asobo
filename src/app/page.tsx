@@ -18,6 +18,7 @@ import { COST_BUCKETS, costBucketOf } from "@/lib/cost";
 import { WEEKDAYS, HOLIDAY_FILTER_VALUE, weekdaysCovered } from "@/lib/weekday";
 
 const MINUTE_OPTIONS = [5, 10, 15, 20, 30, 45, 60];
+const PAGE_SIZE = 30;
 
 const WEEKDAY_FILTER_OPTIONS = [
   ...WEEKDAYS.map((label, w) => ({ label, value: w })),
@@ -49,6 +50,7 @@ export default function Page() {
   // null = 全曜日選択中
   const [selectedWeekdays, setSelectedWeekdays] = useState<Set<number> | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>("date");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const supabase = createClient();
@@ -129,6 +131,18 @@ export default function Page() {
     today,
     sortBy,
   ]);
+
+  const totalPages = Math.max(1, Math.ceil(visibleEvents.length / PAGE_SIZE));
+
+  // 絞り込み条件が変わって表示イベントが変わったら1ページ目に戻す
+  // (レンダー中にstateを更新する公式パターン: https://react.dev/learn/you-might-not-need-an-effect)
+  const [prevVisibleEvents, setPrevVisibleEvents] = useState(visibleEvents);
+  if (prevVisibleEvents !== visibleEvents) {
+    setPrevVisibleEvents(visibleEvents);
+    setPage(1);
+  }
+
+  const pagedEvents = visibleEvents.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (!loaded) return null;
 
@@ -383,16 +397,43 @@ export default function Page() {
             条件に合うイベントが見つかりませんでした。分数を増やすかジャンルを見直してみてください。
           </p>
         ) : (
-          <ul className="flex flex-col gap-3">
-            {visibleEvents.map(({ event, minutes }) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                minutes={minutes}
-                modeEmoji={TRANSPORT_MODES[mode].emoji}
-              />
-            ))}
-          </ul>
+          <>
+            <p className="text-xs text-muted">
+              {visibleEvents.length}件中 {(page - 1) * PAGE_SIZE + 1}〜
+              {Math.min(page * PAGE_SIZE, visibleEvents.length)}件を表示
+            </p>
+            <ul className="flex flex-col gap-3">
+              {pagedEvents.map(({ event, minutes }) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  minutes={minutes}
+                  modeEmoji={TRANSPORT_MODES[mode].emoji}
+                />
+              ))}
+            </ul>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="px-3.5 py-1.5 rounded-full text-sm font-bold border bg-card border-card-border text-muted disabled:opacity-40"
+                >
+                  ＜ 前へ
+                </button>
+                <span className="text-sm font-bold">
+                  {page} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="px-3.5 py-1.5 rounded-full text-sm font-bold border bg-card border-card-border text-muted disabled:opacity-40"
+                >
+                  次へ ＞
+                </button>
+              </div>
+            )}
+          </>
         )}
       </section>
     </main>

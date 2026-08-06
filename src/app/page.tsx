@@ -159,11 +159,11 @@ export default function Page() {
         </h1>
         <div className="flex items-center gap-3 shrink-0">
           <Link href="/links" className="text-xs text-muted hover:text-foreground hover:underline">
-            情報源一覧
+            リンク集
           </Link>
           <Link
             href="/admin"
-            className="text-xs font-bold text-accent hover:underline"
+            className="text-xs font-bold text-accent border border-accent rounded-full px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition-colors"
           >
             ＋ イベントを追加
           </Link>

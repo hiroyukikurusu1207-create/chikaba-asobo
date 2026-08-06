@@ -22,9 +22,57 @@ export function AdminDashboard() {
   const [message, setMessage] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [importUrl, setImportUrl] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
 
   function update<K extends keyof typeof emptyForm>(key: K, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function handleImportFromUrl() {
+    if (!importUrl.trim()) return;
+    setImporting(true);
+    setImportMessage(null);
+    try {
+      const res = await fetch("/api/admin/extract-from-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: importUrl.trim() }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        setImportMessage(body?.error ?? "取り込みに失敗しました");
+        return;
+      }
+      const r = body.result as {
+        title: string | null;
+        genre: string | null;
+        startDate: string | null;
+        endDate: string | null;
+        venueName: string | null;
+        address: string | null;
+        eventTime: string | null;
+        targetAge: string | null;
+        cost: string | null;
+      };
+      setForm((prev) => ({
+        ...prev,
+        title: r.title ?? prev.title,
+        genre: r.genre ?? prev.genre,
+        startDate: r.startDate ?? prev.startDate,
+        endDate: r.endDate ?? prev.endDate,
+        venueName: r.venueName ?? prev.venueName,
+        address: r.address ?? prev.address,
+        eventTime: r.eventTime ?? prev.eventTime,
+        targetAge: r.targetAge ?? prev.targetAge,
+        cost: r.cost ?? prev.cost,
+        sourceUrl: importUrl.trim(),
+      }));
+      setImportMessage("下のフォームに仮入力しました。内容を確認してから追加してください");
+    } finally {
+      setImporting(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -92,6 +140,30 @@ export function AdminDashboard() {
           {syncing ? "実行中..." : "今すぐ同期を実行"}
         </button>
         {syncMessage && <p className="text-xs text-muted">{syncMessage}</p>}
+      </section>
+
+      <section className="rounded-2xl bg-card border border-card-border shadow-sm p-4 flex flex-col gap-2">
+        <p className="text-sm font-bold">URLから取り込む</p>
+        <p className="text-xs text-muted">
+          イベントページのURLを貼ると、下のフォームに内容を仮入力します（読み取り精度はサイトによって異なるため、必ず内容を確認してください）。
+        </p>
+        <div className="flex gap-2">
+          <input
+            placeholder="https://..."
+            value={importUrl}
+            onChange={(e) => setImportUrl(e.target.value)}
+            className="flex-1 rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
+          />
+          <button
+            type="button"
+            onClick={handleImportFromUrl}
+            disabled={importing || !importUrl.trim()}
+            className="shrink-0 rounded-xl bg-primary text-primary-foreground px-4 py-2.5 text-sm font-extrabold shadow-sm disabled:opacity-50"
+          >
+            {importing ? "取り込み中..." : "取り込む"}
+          </button>
+        </div>
+        {importMessage && <p className="text-xs text-muted">{importMessage}</p>}
       </section>
 
       <form

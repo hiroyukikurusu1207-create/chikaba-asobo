@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { guessGenre } from "@/lib/urlImport";
 
 const emptyForm = {
   title: "",
@@ -16,6 +17,29 @@ const emptyForm = {
   sourceUrl: "",
 };
 
+type ExtractedFields = {
+  title: string | null;
+  genre: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  venueName: string | null;
+  address: string | null;
+  eventTime: string | null;
+  targetAge: string | null;
+  cost: string | null;
+};
+
+async function extractFromUrl(url: string): Promise<{ result?: ExtractedFields; error?: string }> {
+  const res = await fetch("/api/admin/extract-from-url", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url }),
+  });
+  const body = await res.json().catch(() => null);
+  if (!res.ok) return { error: body?.error ?? "取り込みに失敗しました" };
+  return { result: body.result as ExtractedFields };
+}
+
 export function AdminDashboard() {
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
@@ -30,45 +54,42 @@ export function AdminDashboard() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function handleTitleChange(value: string) {
+    setForm((prev) => {
+      // ジャンルを未入力のまま残しているときだけ、タイトルからの自動推測で上書きする
+      // （すでに手で入力・修正したジャンルを勝手に書き換えないため）
+      const guessed = prev.genre ? prev.genre : (guessGenre(value) ?? "");
+      return { ...prev, title: value, genre: guessed };
+    });
+  }
+
+  function mergeExtracted(prev: typeof emptyForm, r: ExtractedFields, sourceUrl: string) {
+    return {
+      ...prev,
+      title: r.title ?? prev.title,
+      genre: r.genre ?? prev.genre,
+      startDate: r.startDate ?? prev.startDate,
+      endDate: r.endDate ?? prev.endDate,
+      venueName: r.venueName ?? prev.venueName,
+      address: r.address ?? prev.address,
+      eventTime: r.eventTime ?? prev.eventTime,
+      targetAge: r.targetAge ?? prev.targetAge,
+      cost: r.cost ?? prev.cost,
+      sourceUrl,
+    };
+  }
+
   async function handleImportFromUrl() {
     if (!importUrl.trim()) return;
     setImporting(true);
     setImportMessage(null);
     try {
-      const res = await fetch("/api/admin/extract-from-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: importUrl.trim() }),
-      });
-      const body = await res.json().catch(() => null);
-      if (!res.ok) {
-        setImportMessage(body?.error ?? "取り込みに失敗しました");
+      const { result, error } = await extractFromUrl(importUrl.trim());
+      if (!result) {
+        setImportMessage(error ?? "取り込みに失敗しました");
         return;
       }
-      const r = body.result as {
-        title: string | null;
-        genre: string | null;
-        startDate: string | null;
-        endDate: string | null;
-        venueName: string | null;
-        address: string | null;
-        eventTime: string | null;
-        targetAge: string | null;
-        cost: string | null;
-      };
-      setForm((prev) => ({
-        ...prev,
-        title: r.title ?? prev.title,
-        genre: r.genre ?? prev.genre,
-        startDate: r.startDate ?? prev.startDate,
-        endDate: r.endDate ?? prev.endDate,
-        venueName: r.venueName ?? prev.venueName,
-        address: r.address ?? prev.address,
-        eventTime: r.eventTime ?? prev.eventTime,
-        targetAge: r.targetAge ?? prev.targetAge,
-        cost: r.cost ?? prev.cost,
-        sourceUrl: importUrl.trim(),
-      }));
+      setForm((prev) => mergeExtracted(prev, result, importUrl.trim()));
       setImportMessage("下のフォームに仮入力しました。内容を確認してから追加してください");
     } finally {
       setImporting(false);
@@ -80,24 +101,44 @@ export function AdminDashboard() {
     setSubmitting(true);
     setMessage(null);
     try {
+      let current = form;
+
+      // タイトル・開始日が未入力でも参照URLさえあれば追加できるよう、
+      // 不足分は送信前に自動で取り込む
+      if ((!current.title || !current.startDate) && current.sourceUrl.trim()) {
+        const { result, error } = await extractFromUrl(current.sourceUrl.trim());
+        if (!result) {
+          setMessage(error ?? "参照URLからの取り込みに失敗しました");
+          return;
+        }
+        current = mergeExtracted(current, result, current.sourceUrl.trim());
+        setForm(current);
+        if (!current.title || !current.startDate) {
+          setMessage(
+            "参照URLからタイトル・開催日を読み取れませんでした。フォームを確認し、手動で入力してください",
+          );
+          return;
+        }
+      }
+
       const res = await fetch("/api/admin/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: form.title,
-          genre: form.genre
+          title: current.title,
+          genre: current.genre
             .split(",")
             .map((g) => g.trim())
             .filter(Boolean),
-          startDate: form.startDate,
-          endDate: form.endDate || null,
-          venueName: form.venueName || null,
-          address: form.address || null,
-          description: form.description || null,
-          targetAge: form.targetAge || null,
-          eventTime: form.eventTime || null,
-          cost: form.cost || null,
-          sourceUrl: form.sourceUrl || null,
+          startDate: current.startDate,
+          endDate: current.endDate || null,
+          venueName: current.venueName || null,
+          address: current.address || null,
+          description: current.description || null,
+          targetAge: current.targetAge || null,
+          eventTime: current.eventTime || null,
+          cost: current.cost || null,
+          sourceUrl: current.sourceUrl || null,
         }),
       });
       if (!res.ok) {
@@ -170,11 +211,14 @@ export function AdminDashboard() {
         onSubmit={handleSubmit}
         className="rounded-2xl bg-card border border-card-border shadow-sm p-4 flex flex-col gap-3"
       >
-        <p className="text-sm font-bold">イベントを手動追加</p>
+        <div className="flex items-baseline justify-between gap-2">
+          <p className="text-sm font-bold">イベントを手動追加</p>
+          <p className="text-xs text-muted">＊は必須項目です</p>
+        </div>
         <input
           placeholder="タイトル *"
           value={form.title}
-          onChange={(e) => update("title", e.target.value)}
+          onChange={(e) => handleTitleChange(e.target.value)}
           className="rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
         />
         <input
@@ -244,10 +288,15 @@ export function AdminDashboard() {
           onChange={(e) => update("sourceUrl", e.target.value)}
           className="rounded-xl border border-card-border bg-background px-3 py-2.5 outline-none focus:border-primary"
         />
+        <p className="text-xs text-muted -mt-1">
+          参照URLだけ入力して「追加する」を押すと、他の項目を自動で取り込みます
+        </p>
         {message && <p className="text-sm font-bold">{message}</p>}
         <button
           type="submit"
-          disabled={submitting || !form.title || !form.startDate}
+          disabled={
+            submitting || (!form.sourceUrl.trim() && (!form.title || !form.startDate))
+          }
           className="rounded-full bg-primary text-primary-foreground py-2.5 font-extrabold shadow-sm disabled:opacity-50"
         >
           {submitting ? "追加中..." : "追加する"}

@@ -150,7 +150,7 @@ const GENRE_KEYWORDS: { pattern: RegExp; label: string }[] = [
   { pattern: /教室|体験|講習/, label: "教室・体験" },
 ];
 
-function guessGenre(title: string): string | null {
+export function guessGenre(title: string): string | null {
   const match = GENRE_KEYWORDS.find((g) => g.pattern.test(title));
   return match ? match.label : null;
 }

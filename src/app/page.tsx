@@ -157,12 +157,17 @@ export default function Page() {
           ちかばで<span className="text-accent">あそぼーよ</span>
           <span className="text-sm font-bold text-muted">＠江戸川区周辺</span>
         </h1>
-        <Link
-          href="/admin"
-          className="text-xs font-bold text-accent hover:underline"
-        >
-          ＋ イベントを追加
-        </Link>
+        <div className="flex items-center gap-3 shrink-0">
+          <Link href="/links" className="text-xs text-muted hover:text-foreground hover:underline">
+            情報源一覧
+          </Link>
+          <Link
+            href="/admin"
+            className="text-xs font-bold text-accent hover:underline"
+          >
+            ＋ イベントを追加
+          </Link>
+        </div>
       </header>
 
       <section className="rounded-2xl bg-card border border-card-border shadow-sm p-3.5 flex items-center justify-between gap-2">

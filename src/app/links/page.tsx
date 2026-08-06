@@ -1,0 +1,73 @@
+import Link from "next/link";
+
+const SOURCES = [
+  {
+    name: "江戸川区 公式サイト",
+    note: "イベントカレンダー・各地区の盆踊り情報",
+    url: "https://www.city.edogawa.tokyo.jp/",
+  },
+  {
+    name: "江戸川区立図書館",
+    note: "おはなし会・講座などのイベント情報",
+    url: "https://www.library.city.edogawa.tokyo.jp/",
+  },
+  {
+    name: "江戸川区総合体育館",
+    note: "スポーツ教室・大会情報",
+    url: "https://www.edogawa-sotai.com/",
+  },
+  {
+    name: "江戸川区スポーツセンター",
+    note: "スポーツ教室情報",
+    url: "https://www.edogawa-spocen.com/",
+  },
+  {
+    name: "船堀タワーホール",
+    note: "催事・講座情報",
+    url: "https://www.towerhall.jp/",
+  },
+  {
+    name: "グリーンパレス",
+    note: "催事情報",
+    url: "https://www.green-palace.jp/",
+  },
+  {
+    name: "新小岩まちガイド",
+    note: "新小岩周辺のイベント情報",
+    url: "https://shinkoi-one-guide.com/",
+  },
+];
+
+export default function LinksPage() {
+  return (
+    <main className="flex-1 mx-auto w-full max-w-lg px-4 py-6 flex flex-col gap-5">
+      <header className="flex items-center justify-between gap-2">
+        <h1 className="text-xl font-extrabold">情報源リンク集</h1>
+        <Link href="/" className="text-xs text-muted hover:text-foreground hover:underline">
+          一覧へ戻る
+        </Link>
+      </header>
+      <p className="text-sm text-muted leading-relaxed">
+        このアプリのイベント情報は、以下の公式サイトの情報を参考に登録しています。詳しい内容は各サイトでご確認ください。
+      </p>
+      <ul className="flex flex-col gap-3">
+        {SOURCES.map((s) => (
+          <li
+            key={s.url}
+            className="rounded-2xl bg-card border border-card-border shadow-sm p-4 flex flex-col gap-1"
+          >
+            <a
+              href={s.url}
+              target="_blank"
+              rel="noreferrer"
+              className="font-bold hover:underline"
+            >
+              {s.name}
+            </a>
+            <p className="text-sm text-muted">{s.note}</p>
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
+}

@@ -9,7 +9,7 @@ const mplusRounded = M_PLUS_Rounded_1c({
 });
 
 export const metadata: Metadata = {
-  title: "ちかばであそぼーよ",
+  title: "ちかばであそぼーよ＠江戸川区周辺",
   description: "自宅からの移動時間で探せる、フェス・祭り・文化イベントのお散歩アプリ",
 };
 

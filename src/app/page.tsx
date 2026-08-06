@@ -15,14 +15,19 @@ import type { EventRow } from "@/lib/types";
 import { EventCard } from "@/components/EventCard";
 import { HomeSetupForm } from "@/components/HomeSetupForm";
 import { COST_BUCKETS, costBucketOf } from "@/lib/cost";
-import { WEEKDAYS, weekdaysCovered } from "@/lib/weekday";
+import { WEEKDAYS, HOLIDAY_FILTER_VALUE, weekdaysCovered } from "@/lib/weekday";
 
 const MINUTE_OPTIONS = [5, 10, 15, 20, 30, 45, 60];
 
+const WEEKDAY_FILTER_OPTIONS = [
+  ...WEEKDAYS.map((label, w) => ({ label, value: w })),
+  { label: "祝", value: HOLIDAY_FILTER_VALUE },
+];
+
 type SortBy = "distance" | "date";
 const SORT_OPTIONS: { value: SortBy; label: string }[] = [
-  { value: "distance", label: "近い順" },
   { value: "date", label: "開催日順" },
+  { value: "distance", label: "近い順" },
 ];
 
 export default function Page() {
@@ -43,7 +48,7 @@ export default function Page() {
   const [selectedCostBuckets, setSelectedCostBuckets] = useState<Set<string> | null>(null);
   // null = 全曜日選択中
   const [selectedWeekdays, setSelectedWeekdays] = useState<Set<number> | null>(null);
-  const [sortBy, setSortBy] = useState<SortBy>("distance");
+  const [sortBy, setSortBy] = useState<SortBy>("date");
 
   useEffect(() => {
     const supabase = createClient();
@@ -136,6 +141,7 @@ export default function Page() {
       <header className="flex items-center justify-between gap-2">
         <h1 className="text-xl font-extrabold tracking-tight">
           ちかばで<span className="text-accent">あそぼーよ</span>
+          <span className="text-sm font-bold text-muted">＠江戸川区周辺</span>
         </h1>
         <Link
           href="/admin"
@@ -324,14 +330,14 @@ export default function Page() {
           </button>
         </div>
         <div className="flex flex-wrap gap-2">
-          {WEEKDAYS.map((label, w) => {
+          {WEEKDAY_FILTER_OPTIONS.map(({ label, value: w }) => {
             const active = selectedWeekdays === null || selectedWeekdays.has(w);
             return (
               <button
                 key={w}
                 onClick={() =>
                   setSelectedWeekdays((prev) => {
-                    const next = new Set(prev ?? WEEKDAYS.map((_, i) => i));
+                    const next = new Set(prev ?? WEEKDAY_FILTER_OPTIONS.map((o) => o.value));
                     if (next.has(w)) next.delete(w);
                     else next.add(w);
                     return next;

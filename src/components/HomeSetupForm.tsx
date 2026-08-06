@@ -42,6 +42,7 @@ export function HomeSetupForm({
       <div>
         <h1 className="text-2xl font-extrabold tracking-tight">
           ちかばで<span className="text-accent">あそぼーよ</span>
+          <span className="block text-sm font-bold text-muted mt-0.5">＠江戸川区周辺</span>
         </h1>
         <p className="text-sm text-muted mt-2 leading-relaxed">
           自宅からの移動時間で、フェス・祭り・文化イベントをのんびり探せます。まずは自宅の場所を教えてください。

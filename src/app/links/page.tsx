@@ -36,6 +36,21 @@ const SOURCES = [
     note: "新小岩周辺のイベント情報",
     url: "https://shinkoi-one-guide.com/",
   },
+  {
+    name: "カメイドクロック",
+    note: "館内イベント情報（お祭り等のみ）",
+    url: "https://www.kameidoclock.jp/event/",
+  },
+  {
+    name: "共育プラザ中央（子育てひろば）",
+    note: "子育て・中高生向けイベント情報",
+    url: "https://mommy-chuou.com/news/",
+  },
+  {
+    name: "地下鉄博物館",
+    note: "館内イベント・スタンプラリー情報",
+    url: "https://www.chikahaku.jp/event/",
+  },
 ];
 
 export default function LinksPage() {

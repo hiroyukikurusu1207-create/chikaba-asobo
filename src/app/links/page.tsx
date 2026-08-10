@@ -89,6 +89,11 @@ const SOURCE_GROUPS = [
         note: "イベント情報",
         url: "https://kasaikaihinpark.com/event/",
       },
+      {
+        name: "ししぼねベジフラブ",
+        note: "公園クラブなど鹿骨の農にまつわる活動情報",
+        url: "https://vegeflove.com/",
+      },
     ],
   },
   {

@@ -103,6 +103,19 @@ export default function LinksPage() {
           </li>
         ))}
       </ul>
+
+      <section className="rounded-2xl bg-card border border-card-border shadow-sm p-4 flex flex-col gap-1">
+        <p className="text-sm font-bold">お問い合わせ</p>
+        <p className="text-sm text-muted leading-relaxed">
+          要望（リンク集への追加）、質問などは気軽に下記メール先にて
+        </p>
+        <a
+          href="mailto:edogawa.asoboyo@gmail.com"
+          className="font-bold hover:underline"
+        >
+          edogawa.asoboyo@gmail.com
+        </a>
+      </section>
     </main>
   );
 }

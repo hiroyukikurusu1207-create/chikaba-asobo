@@ -51,6 +51,11 @@ const SOURCES = [
     note: "館内イベント・スタンプラリー情報",
     url: "https://www.chikahaku.jp/event/",
   },
+  {
+    name: "魔法の文学館（江戸川区角野栄子児童文学館）",
+    note: "企画展情報",
+    url: "https://kikismuseum.jp/gallery/",
+  },
 ];
 
 export default function LinksPage() {

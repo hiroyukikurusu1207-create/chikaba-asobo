@@ -441,6 +441,15 @@ export default function Page() {
           </>
         )}
       </section>
+
+      <footer className="text-center pt-2">
+        <a
+          href="mailto:edogawa.asoboyo@gmail.com"
+          className="text-xs text-muted hover:text-foreground hover:underline"
+        >
+          お問い合わせ
+        </a>
+      </footer>
     </main>
   );
 }

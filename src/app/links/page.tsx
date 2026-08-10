@@ -56,6 +56,11 @@ const SOURCES = [
     note: "企画展情報",
     url: "https://kikismuseum.jp/gallery/",
   },
+  {
+    name: "江戸川区発達相談・支援センター",
+    note: "研修会・講座情報",
+    url: "https://edo-hssc.jp/",
+  },
 ];
 
 export default function LinksPage() {

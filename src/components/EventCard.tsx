@@ -1,6 +1,23 @@
 import type { EventRow } from "@/lib/types";
 import { WEEKDAYS, weekdayOf } from "@/lib/weekday";
 
+const GENRE_ICONS: Record<string, string> = {
+  "おはなし会・朗読会": "📖",
+  お祭り: "🏮",
+  ワークショップ: "🔨",
+  映画会: "🎬",
+  "演奏会（コンサート）": "🎤",
+  音楽: "🎵",
+  "寄席・演芸": "🎭",
+  "教室・体験": "✏️",
+  工作会: "✂️",
+  講座: "📚",
+  "研修会・講座": "📚",
+  催事: "🎪",
+  "展示・アート": "🎨",
+  "文化・芸術": "🎨",
+};
+
 function formatDateRange(start: string, end: string | null): string {
   const fmt = (iso: string) => {
     const [, m, d] = iso.split("-");
@@ -28,6 +45,7 @@ export function EventCard({
               key={g}
               className="text-xs font-bold rounded-full bg-highlight text-highlight-foreground px-2 py-0.5"
             >
+              {GENRE_ICONS[g] ? `${GENRE_ICONS[g]} ` : ""}
               {g}
             </span>
           ))}

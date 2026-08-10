@@ -144,6 +144,11 @@ export default function Page() {
 
   const pagedEvents = visibleEvents.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  function goToPage(next: number) {
+    setPage(next);
+    document.getElementById("event-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   if (!loaded) return null;
 
   if (!home) {
@@ -394,7 +399,7 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3">
+      <section id="event-list" className="flex flex-col gap-3 scroll-mt-4">
         {loadingEvents ? (
           <p className="text-sm text-muted">読み込み中...</p>
         ) : visibleEvents.length === 0 ? (
@@ -420,7 +425,7 @@ export default function Page() {
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-3 pt-2">
                 <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onClick={() => goToPage(Math.max(1, page - 1))}
                   disabled={page <= 1}
                   className="px-3.5 py-1.5 rounded-full text-sm font-bold border bg-card border-card-border text-muted disabled:opacity-40"
                 >
@@ -430,7 +435,7 @@ export default function Page() {
                   {page} / {totalPages}
                 </span>
                 <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() => goToPage(Math.min(totalPages, page + 1))}
                   disabled={page >= totalPages}
                   className="px-3.5 py-1.5 rounded-full text-sm font-bold border bg-card border-card-border text-muted disabled:opacity-40"
                 >

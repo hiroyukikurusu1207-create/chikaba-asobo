@@ -61,6 +61,16 @@ const SOURCES = [
     note: "研修会・講座情報",
     url: "https://edo-hssc.jp/",
   },
+  {
+    name: "葛西臨海水族園",
+    note: "イベントカレンダー",
+    url: "https://www.tokyo-zoo.net/kasai/events/index.html",
+  },
+  {
+    name: "葛西海浜公園",
+    note: "イベント情報",
+    url: "https://kasaikaihinpark.com/event/",
+  },
 ];
 
 export default function LinksPage() {

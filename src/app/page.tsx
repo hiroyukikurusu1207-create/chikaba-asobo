@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useHomeLocation } from "@/hooks/useHomeLocation";
+import { useSearchPrefs } from "@/hooks/useSearchPrefs";
 import { createClient } from "@/lib/supabase/client";
 import {
   TRANSPORT_MODES,
@@ -35,13 +36,11 @@ export default function Page() {
   const { home, setHome, clearHome, loaded } = useHomeLocation();
   const [events, setEvents] = useState<EventRow[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
-  const [maxMinutes, setMaxMinutes] = useState(15);
-  const [mode, setMode] = useState<TransportMode>("bike");
-  const [speed, setSpeed] = useState(TRANSPORT_MODES.bike.defaultSpeedKmh);
+  const { prefs, setPrefs } = useSearchPrefs();
+  const { mode, speed, maxMinutes } = prefs;
 
   function selectMode(next: TransportMode) {
-    setMode(next);
-    setSpeed(TRANSPORT_MODES[next].defaultSpeedKmh);
+    setPrefs({ mode: next, speed: TRANSPORT_MODES[next].defaultSpeedKmh });
   }
   // null = 全ジャンル選択中（イベント読み込み前のデフォルト状態も兼ねる）
   const [selectedGenres, setSelectedGenres] = useState<Set<string> | null>(null);
@@ -210,7 +209,7 @@ export default function Page() {
           {MINUTE_OPTIONS.map((m) => (
             <button
               key={m}
-              onClick={() => setMaxMinutes(m)}
+              onClick={() => setPrefs({ maxMinutes: m })}
               className={`px-3.5 py-1.5 rounded-full text-sm font-bold border transition-colors ${
                 maxMinutes === m
                   ? "bg-accent text-accent-foreground border-accent shadow-sm"
@@ -229,7 +228,7 @@ export default function Page() {
               min={TRANSPORT_MODES[mode].minSpeedKmh}
               max={TRANSPORT_MODES[mode].maxSpeedKmh}
               value={speed}
-              onChange={(e) => setSpeed(Number(e.target.value))}
+              onChange={(e) => setPrefs({ speed: Number(e.target.value) })}
               list={mode === "walk" ? "stroller-speed-tick" : undefined}
               className="flex-1 accent-primary"
             />
@@ -243,7 +242,7 @@ export default function Page() {
           {mode === "walk" && (
             <button
               type="button"
-              onClick={() => setSpeed(STROLLER_SPEED_KMH)}
+              onClick={() => setPrefs({ speed: STROLLER_SPEED_KMH })}
               className="mt-2 text-accent font-bold hover:underline"
             >
               🍼 ベビーカーの目安(時速{STROLLER_SPEED_KMH}km)に合わせる

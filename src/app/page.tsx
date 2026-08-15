@@ -36,18 +36,21 @@ export default function Page() {
   const { home, setHome, clearHome, loaded } = useHomeLocation();
   const [events, setEvents] = useState<EventRow[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
-  const { prefs, setPrefs } = useSearchPrefs();
+  const {
+    prefs,
+    setPrefs,
+    selectedGenres,
+    setSelectedGenres,
+    selectedCostBuckets,
+    setSelectedCostBuckets,
+    selectedWeekdays,
+    setSelectedWeekdays,
+  } = useSearchPrefs();
   const { mode, speed, maxMinutes } = prefs;
 
   function selectMode(next: TransportMode) {
     setPrefs({ mode: next, speed: TRANSPORT_MODES[next].defaultSpeedKmh });
   }
-  // null = 全ジャンル選択中（イベント読み込み前のデフォルト状態も兼ねる）
-  const [selectedGenres, setSelectedGenres] = useState<Set<string> | null>(null);
-  // null = 全価格帯選択中
-  const [selectedCostBuckets, setSelectedCostBuckets] = useState<Set<string> | null>(null);
-  // null = 全曜日選択中
-  const [selectedWeekdays, setSelectedWeekdays] = useState<Set<number> | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>("date");
   const [page, setPage] = useState(1);
 

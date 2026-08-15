@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useHomeLocation } from "@/hooks/useHomeLocation";
 import { useSearchPrefs } from "@/hooks/useSearchPrefs";
+import { useWantToGo } from "@/hooks/useWantToGo";
 import { createClient } from "@/lib/supabase/client";
 import {
   TRANSPORT_MODES,
@@ -53,6 +54,8 @@ export default function Page() {
   }
   const [sortBy, setSortBy] = useState<SortBy>("date");
   const [page, setPage] = useState(1);
+  const { wanted, toggleWant } = useWantToGo();
+  const [wantedOnly, setWantedOnly] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -101,6 +104,7 @@ export default function Page() {
         // 長期間開催などで曜日を特定できないイベントは除外しない
         return covered === null || [...covered].some((w) => selectedWeekdays.has(w));
       })
+      .filter((e) => !wantedOnly || wanted.has(e.id))
       .map((e) => {
         const minutes =
           e.lat !== null && e.lng !== null
@@ -127,6 +131,8 @@ export default function Page() {
     selectedGenres,
     selectedCostBuckets,
     selectedWeekdays,
+    wantedOnly,
+    wanted,
     maxMinutes,
     speed,
     mode,
@@ -401,6 +407,20 @@ export default function Page() {
         </div>
       </section>
 
+      <section className="flex items-center justify-between gap-2">
+        <label className="text-sm font-bold">気になる</label>
+        <button
+          onClick={() => setWantedOnly((prev) => !prev)}
+          className={`px-3.5 py-1.5 rounded-full text-sm font-bold border transition-colors ${
+            wantedOnly
+              ? "bg-accent text-accent-foreground border-accent shadow-sm"
+              : "bg-card border-card-border text-muted"
+          }`}
+        >
+          {wantedOnly ? "★ 気になるのみ表示中" : "☆ 気になるのみ表示"}
+        </button>
+      </section>
+
       <section id="event-list" className="flex flex-col gap-3 scroll-mt-4">
         {loadingEvents ? (
           <p className="text-sm text-muted">読み込み中...</p>
@@ -421,6 +441,8 @@ export default function Page() {
                   event={event}
                   minutes={minutes}
                   modeEmoji={TRANSPORT_MODES[mode].emoji}
+                  wanted={wanted.has(event.id)}
+                  onToggleWant={() => toggleWant(event.id)}
                 />
               ))}
             </ul>

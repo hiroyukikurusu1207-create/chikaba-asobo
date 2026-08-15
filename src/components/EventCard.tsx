@@ -31,10 +31,14 @@ export function EventCard({
   event,
   minutes,
   modeEmoji,
+  wanted,
+  onToggleWant,
 }: {
   event: EventRow;
   minutes: number | null;
   modeEmoji: string;
+  wanted: boolean;
+  onToggleWant: () => void;
 }) {
   return (
     <li className="rounded-2xl bg-card border border-card-border shadow-sm p-4 flex flex-col gap-1.5">
@@ -80,6 +84,17 @@ export function EventCard({
         {" ・ 費用: "}
         {event.cost ? event.cost.split("\n")[0] : "無料※記載なしのため"}
       </p>
+      <button
+        type="button"
+        onClick={onToggleWant}
+        className={`self-start mt-1 text-xs font-bold rounded-full px-3 py-1 border transition-colors ${
+          wanted
+            ? "bg-accent text-accent-foreground border-accent shadow-sm"
+            : "bg-card border-card-border text-muted"
+        }`}
+      >
+        {wanted ? "★ 気になる！" : "☆ 気になる"}
+      </button>
     </li>
   );
 }

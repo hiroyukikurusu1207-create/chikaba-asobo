@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useHomeLocation } from "@/hooks/useHomeLocation";
 import { useSearchPrefs } from "@/hooks/useSearchPrefs";
@@ -152,10 +152,17 @@ export default function Page() {
 
   const pagedEvents = visibleEvents.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  function goToPage(next: number) {
-    setPage(next);
+  // ページ送り直後は表示件数が減って高さが縮むことがあり、クリック直後に
+  // スクロールするとレイアウト変更前の位置を狙ってしまい下端に残ることがあるため、
+  // 描画が確定した後（useEffect内）でスクロールする
+  const skipScrollRef = useRef(true);
+  useEffect(() => {
+    if (skipScrollRef.current) {
+      skipScrollRef.current = false;
+      return;
+    }
     document.getElementById("event-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  }, [page]);
 
   if (!loaded) return null;
 
@@ -449,7 +456,7 @@ export default function Page() {
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-3 pt-2">
                 <button
-                  onClick={() => goToPage(Math.max(1, page - 1))}
+                  onClick={() => setPage(Math.max(1, page - 1))}
                   disabled={page <= 1}
                   className="px-3.5 py-1.5 rounded-full text-sm font-bold border bg-card border-card-border text-muted disabled:opacity-40"
                 >
@@ -459,7 +466,7 @@ export default function Page() {
                   {page} / {totalPages}
                 </span>
                 <button
-                  onClick={() => goToPage(Math.min(totalPages, page + 1))}
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
                   disabled={page >= totalPages}
                   className="px-3.5 py-1.5 rounded-full text-sm font-bold border bg-card border-card-border text-muted disabled:opacity-40"
                 >

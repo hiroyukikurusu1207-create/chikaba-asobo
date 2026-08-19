@@ -82,7 +82,10 @@ export default function Page() {
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
-  const visibleEvents = useMemo(() => {
+  // 「気になる」の付け外し（wanted）は絞り込み条件の変更ではないため、
+  // ここでは含めない。含めると、気になるボタンを押すたびに配列の参照が
+  // 変わってしまい、下のページリセット処理が誤作動して1ページ目に戻ってしまう
+  const baseFilteredEvents = useMemo(() => {
     if (!home) return [];
     return events
       .filter((e) => (e.end_date ?? e.start_date) >= today)
@@ -104,7 +107,6 @@ export default function Page() {
         // 長期間開催などで曜日を特定できないイベントは除外しない
         return covered === null || [...covered].some((w) => selectedWeekdays.has(w));
       })
-      .filter((e) => !wantedOnly || wanted.has(e.id))
       .map((e) => {
         const minutes =
           e.lat !== null && e.lng !== null
@@ -131,8 +133,6 @@ export default function Page() {
     selectedGenres,
     selectedCostBuckets,
     selectedWeekdays,
-    wantedOnly,
-    wanted,
     maxMinutes,
     speed,
     mode,
@@ -140,13 +140,21 @@ export default function Page() {
     sortBy,
   ]);
 
+  const visibleEvents = useMemo(
+    () => baseFilteredEvents.filter(({ event }) => !wantedOnly || wanted.has(event.id)),
+    [baseFilteredEvents, wantedOnly, wanted],
+  );
+
   const totalPages = Math.max(1, Math.ceil(visibleEvents.length / PAGE_SIZE));
 
-  // 絞り込み条件が変わって表示イベントが変わったら1ページ目に戻す
+  // 絞り込み条件（気になるON/OFFの切り替えを含む）が変わったら1ページ目に戻す。
+  // 気になるの付け外し自体ではリセットしない
   // (レンダー中にstateを更新する公式パターン: https://react.dev/learn/you-might-not-need-an-effect)
-  const [prevVisibleEvents, setPrevVisibleEvents] = useState(visibleEvents);
-  if (prevVisibleEvents !== visibleEvents) {
-    setPrevVisibleEvents(visibleEvents);
+  const [prevBaseFilteredEvents, setPrevBaseFilteredEvents] = useState(baseFilteredEvents);
+  const [prevWantedOnly, setPrevWantedOnly] = useState(wantedOnly);
+  if (prevBaseFilteredEvents !== baseFilteredEvents || prevWantedOnly !== wantedOnly) {
+    setPrevBaseFilteredEvents(baseFilteredEvents);
+    setPrevWantedOnly(wantedOnly);
     setPage(1);
   }
 
@@ -161,7 +169,16 @@ export default function Page() {
       skipScrollRef.current = false;
       return;
     }
-    document.getElementById("event-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // モバイルではアドレスバーの表示/非表示でビューポート高さが変化し、
+    // scrollIntoViewのアニメーション中に目標位置がずれて下端に残ることがあるため、
+    // レイアウトが落ち着くフレームで絶対位置を計算し、アニメーションなしで移動する
+    const id = requestAnimationFrame(() => {
+      const el = document.getElementById("event-list");
+      if (!el) return;
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top, behavior: "auto" });
+    });
+    return () => cancelAnimationFrame(id);
   }, [page]);
 
   if (!loaded) return null;

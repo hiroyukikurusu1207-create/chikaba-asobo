@@ -29,6 +29,11 @@ const SOURCE_GROUPS = [
         note: "スポーツ教室情報",
         url: "https://www.edogawa-spocen.com/",
       },
+      {
+        name: "江戸川区文化スポーツプラザ",
+        note: "イベントカレンダー",
+        url: "https://culture-sports-plaza.jp/events.html",
+      },
     ],
   },
   {

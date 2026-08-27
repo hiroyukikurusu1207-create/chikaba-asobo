@@ -102,6 +102,16 @@ const SOURCE_GROUPS = [
     ],
   },
   {
+    category: "防災",
+    sources: [
+      {
+        name: "江戸川消防署",
+        note: "防災救急フェアなどのイベント情報",
+        url: "https://www.tfd.metro.tokyo.lg.jp/fs/edogawa/event.html",
+      },
+    ],
+  },
+  {
     category: "地域・商業施設",
     sources: [
       {

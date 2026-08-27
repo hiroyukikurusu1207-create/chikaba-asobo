@@ -49,6 +49,11 @@ const SOURCE_GROUPS = [
         note: "催事情報",
         url: "https://www.green-palace.jp/",
       },
+      {
+        name: "新川さくら館",
+        note: "お知らせとイベント情報",
+        url: "https://www.sakurakan-edogawa.jp/topics/",
+      },
     ],
   },
   {

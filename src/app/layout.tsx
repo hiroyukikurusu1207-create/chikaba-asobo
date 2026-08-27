@@ -36,6 +36,9 @@ export const metadata: Metadata = {
     description:
       "江戸川区周辺のお祭り・盆踊り・文化イベント・子育て向けイベントを、自宅からの移動時間で探せる無料の散歩アプリ。",
   },
+  verification: {
+    google: "_-oNP9LsVTi0_POus0LJW8MOV6KWbaOoWKuu6VIytps",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
